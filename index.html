@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaaS - Solicitação Prazo/Grade SCMG</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 16px;
+            opacity: 0.95;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+            font-size: 14px;
+        }
+
+        .form-group input[type="file"],
+        .form-group input[type="text"],
+        .form-group input[type="number"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .form-group input[type="file"] {
+            padding: 8px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            grid-column: span 2;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        .btn-secondary:hover {
+            background: #e8e8e8;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+        }
+
+        .info-box {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .info-box strong {
+            color: #333;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .tab-btn {
+            padding: 12px 20px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 500;
+            color: #888;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .success-message {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .success-message.show {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .linha-item {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .linha-item.removivel {
+            position: relative;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .remove-btn:hover {
+            background: #ff5252;
+        }
+
+        .add-linha-btn {
+            background: #667eea;
+            color: white;
+            margin-top: 15px;
+        }
+
+        .add-linha-btn:hover {
+            background: #5568d3;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 30px;
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .required-field {
+            color: #ff6b6b;
+            margin-left: 3px;
+        }
+
+        .select-option {
+            padding: 8px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Solicitação Prazo/Grade SCMG</h1>
+            <p>Preencha facilmente suas solicitações de prazo e grade sem abrir Excel</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('upload')">📁 1. Upload</button>
+                <button class="tab-btn" onclick="switchTab('preencher')">✏️ 2. Preencher</button>
+                <button class="tab-btn" onclick="switchTab('ajuda')">❓ 3. Ajuda</button>
+            </div>
+
+            <!-- ABA 1: UPLOAD -->
+            <div id="upload" class="tab-content active">
+                <h2 class="section-title">Passo 1: Envie Sua Planilha</h2>
+                
+                <div class="info-box">
+                    <strong>📌 Importante:</strong> Use o arquivo SOLICITACAO_PADRAO_GRADE_E_PRAZO_SCMG.xlsx<br>
+                    <strong>💡 Dica:</strong> Se tiver arquivo .xlsb, abra no Excel e salve como .xlsx
+                </div>
+
+                <div class="form-group">
+                    <label>Selecione o arquivo Excel (.xlsx)</label>
+                    <input type="file" id="fileInput" accept=".xlsx,.xls">
+                </div>
+
+                <button class="btn-primary" onclick="loadFile()">📤 Carregar Planilha</button>
+
+                <div class="error-message" id="errorMessage"></div>
+                <div class="success-message" id="successMessage"></div>
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p style="margin-top: 10px; color: #666;">Carregando planilha...</p>
+                </div>
+            </div>
+
+            <!-- ABA 2: PREENCHER -->
+            <div id="preencher" class="tab-content">
+                <h2 class="section-title">Passo 2: Preencha os Dados</h2>
+
+                <div id="linhasContainer"></div>
+
+                <button class="btn-primary add-linha-btn" onclick="adicionarLinha()">➕ Adicionar Outra Solicitação</button>
+
+                <div class="button-group">
+                    <button class="btn-secondary" onclick="limparFormulario()">🗑️ Limpar</button>
+                    <button class="btn-primary" onclick="preencherEBaixar()">⬇️ Gerar e Baixar</button>
+                </div>
+            </div>
+
+            <!-- ABA 3: AJUDA -->
+            <div id="ajuda" class="tab-content">
+                <h2 class="section-title">Como Usar</h2>
+                
+                <div style="line-height: 1.8; color: #555; font-size: 14px;">
+                    <h3 style="color: #333; margin: 20px 0 10px 0; font-size: 16px;">1️⃣ Prepare Sua Planilha</h3>
+                    <ul style="margin-left: 20px; margin-bottom: 15px;">
+                        <li>Use o arquivo SOLICITACAO_PADRAO_GRADE_E_PRAZO_SCMG.xlsx</li>
+                        <li>Se tiver .xlsb, abra no Excel e salve como .xlsx</li>
+                    </ul>
+
+                    <h3 style="color: #333; margin: 20px 0 10px 0; font-size: 16px;">2️⃣ Carregue o Arquivo</h3>
+                    <ul style="margin-left: 20px; margin-bottom: 15px;">
+                        <li>Clique em "📁 1. Upload"</li>
+                        <li>Selecione seu arquivo .xlsx</li>
+                        <li>Clique em "📤 Carregar Planilha"</li>
+                    </ul>
+
+                    <h3 style="color: #333; margin: 20px 0 10px 0; font-size: 16px;">3️⃣ Preencha os Dados</h3>
+                    <p>Clique em "✏️ 2. Preencher" e complete os campos:</p>
+                    <ul style="margin-left: 20px; margin-bottom: 15px;">
+                        <li><strong>Código PFAT:</strong> Digite o código do cliente</li>
+                        <li><strong>Cliente ou Rede:</strong> Selecione CLIENTE ou REDE</li>
+                        <li><strong>Número Grade:</strong> (opcional) Deixe em branco ou digite um número</li>
+                        <li><strong>Prazo (dias):</strong> (opcional) Número de dias</li>
+                        <li><strong>Geral ou Laboratório:</strong> Escreva GERAL ou nome do laboratório</li>
+                        <li><strong>Canal (EPAN/PE/OL):</strong> Escolha uma das 3 opções</li>
+                        <li><strong>Volume:</strong> Digite o valor negociado</li>
+                        <li><strong>Motivo:</strong> Descreva brevemente o motivo da solicitação</li>
+                    </ul>
+
+                    <h3 style="color: #333; margin: 20px 0 10px 0; font-size: 16px;">4️⃣ Adicionar Múltiplas Solicitações</h3>
+                    <p>Se precisa preencher vários clientes de uma vez:</p>
+                    <ul style="margin-left: 20px; margin-bottom: 15px;">
+                        <li>Clique em "➕ Adicionar Outra Solicitação"</li>
+                        <li>Preencha os dados do novo cliente</li>
+                        <li>Repita quantas vezes precisar</li>
+                    </ul>
+
+                    <h3 style="color: #333; margin: 20px 0 10px 0; font-size: 16px;">5️⃣ Baixe Sua Planilha</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>Clique em "⬇️ Gerar e Baixar"</li>
+                        <li>Sua planilha com todos os dados preenchidos será baixada automaticamente</li>
+                    </ul>
+
+                    <h3 style="color: #333; margin: 20px 0 10px 0; font-size: 16px;">💡 Dicas Importantes</h3>
+                    <ul style="margin-left: 20px;">
+                        <li>Os campos marcados com <span style="color: #ff6b6b;">*</span> são obrigatórios</li>
+                        <li>Campos com (opcional) podem ser deixados em branco</li>
+                        <li>A planilha manterá todas as fórmulas e formatação originais</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Desenvolvido com ❤️ por <strong>Marcello Patolino</strong> | SaaS Solicitação SCMG 2024</p>
+        </div>
+    </div>
+
+    <script>
+        let workbook = null;
+        let numLinhas = 1;
+
+        // Mapa de colunas (Excel Column -> Índice)
+        const colunasMap = {
+            'codigoPfat': 9,      // J
+            'clienteRede': 16,    // Q
+            'numeroGrade': 22,    // W
+            'prazo': 24,          // Y
+            'laboratorio': 25,    // Z
+            'canal': 27,          // AB
+            'volume': 29,         // AD
+            'motivo': 30          // AE
+        };
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = '❌ ' + message;
+            errorDiv.classList.add('show');
+            setTimeout(() => errorDiv.classList.remove('show'), 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('successMessage');
+            successDiv.textContent = '✅ ' + message;
+            successDiv.classList.add('show');
+            setTimeout(() => successDiv.classList.remove('show'), 5000);
+        }
+
+        function loadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showError('Por favor, selecione um arquivo');
+                return;
+            }
+
+            const reader = new FileReader();
+            const loading = document.getElementById('loading');
+            loading.classList.add('show');
+
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    workbook = XLSX.read(data, { type: 'array' });
+                    
+                    loading.classList.remove('show');
+                    showSuccess('Planilha carregada com sucesso!');
+                    
+                    // Ir para aba de preenchimento
+                    switchTab('preencher');
+                    
+                    // Render primeira linha
+                    renderLinhaForm(1);
+                    
+                } catch (error) {
+                    loading.classList.remove('show');
+                    showError('Erro ao ler o arquivo: ' + error.message);
+                }
+            };
+
+            reader.readAsArrayBuffer(file);
+        }
+
+        function renderLinhaForm(numeroLinha) {
+            const container = document.getElementById('linhasContainer');
+            
+            if (numeroLinha === 1) {
+                container.innerHTML = '';
+            }
+            
+            const linhaHtml = `
+                <div class="linha-item removivel" id="linha-${numeroLinha}">
+                    <button class="remove-btn" onclick="removerLinha(${numeroLinha})">✕</button>
+                    
+                    <h3 style="color: #667eea; margin-bottom: 15px; font-size: 15px;">
+                        📝 Solicitação #${numeroLinha}
+                    </h3>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Código PFAT <span class="required-field">*</span></label>
+                            <input type="text" id="codigoPfat_${numeroLinha}" placeholder="Ex: 12345678" maxlength="20">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Cliente ou Rede <span class="required-field">*</span></label>
+                            <select id="clienteRede_${numeroLinha}">
+                                <option value="">-- Selecione --</option>
+                                <option value="CLIENTE">CLIENTE</option>
+                                <option value="REDE">REDE</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Número Grade (opcional)</label>
+                            <input type="text" id="numeroGrade_${numeroLinha}" placeholder="Deixe em branco ou digite um número">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Prazo em Dias (opcional)</label>
+                            <input type="number" id="prazo_${numeroLinha}" placeholder="Ex: 30">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Geral ou Laboratório <span class="required-field">*</span></label>
+                            <input type="text" id="laboratorio_${numeroLinha}" placeholder="Ex: GERAL ou Nome do Laboratório">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Canal de Faturamento <span class="required-field">*</span></label>
+                            <select id="canal_${numeroLinha}">
+                                <option value="">-- Selecione --</option>
+                                <option value="EPAN">EPAN</option>
+                                <option value="PE">PE</option>
+                                <option value="OL">OL</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Volume Negociado <span class="required-field">*</span></label>
+                            <input type="number" id="volume_${numeroLinha}" placeholder="Ex: 1000.00" step="0.01">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Motivo da Solicitação <span class="required-field">*</span></label>
+                        <textarea id="motivo_${numeroLinha}" placeholder="Descreva brevemente o motivo desta solicitação"></textarea>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML += linhaHtml;
+        }
+
+        function adicionarLinha() {
+            numLinhas++;
+            renderLinhaForm(numLinhas);
+        }
+
+        function removerLinha(numero) {
+            if (numLinhas === 1) {
+                showError('Você precisa de pelo menos uma solicitação');
+                return;
+            }
+            
+            const element = document.getElementById(`linha-${numero}`);
+            if (element) {
+                element.remove();
+                showSuccess('Solicitação removida');
+            }
+        }
+
+        function limparFormulario() {
+            document.getElementById('linhasContainer').innerHTML = '';
+            numLinhas = 1;
+            renderLinhaForm(1);
+            showSuccess('Formulário limpo');
+        }
+
+        function validarCampos(numeroLinha) {
+            const campos = {
+                codigoPfat: document.getElementById(`codigoPfat_${numeroLinha}`).value.trim(),
+                clienteRede: document.getElementById(`clienteRede_${numeroLinha}`).value.trim(),
+                laboratorio: document.getElementById(`laboratorio_${numeroLinha}`).value.trim(),
+                canal: document.getElementById(`canal_${numeroLinha}`).value.trim(),
+                volume: document.getElementById(`volume_${numeroLinha}`).value.trim(),
+                motivo: document.getElementById(`motivo_${numeroLinha}`).value.trim()
+            };
+            
+            if (!campos.codigoPfat) return 'Código PFAT obrigatório na solicitação #' + numeroLinha;
+            if (!campos.clienteRede) return 'Cliente ou Rede obrigatório na solicitação #' + numeroLinha;
+            if (!campos.laboratorio) return 'Laboratório/Geral obrigatório na solicitação #' + numeroLinha;
+            if (!campos.canal) return 'Canal obrigatório na solicitação #' + numeroLinha;
+            if (!campos.volume) return 'Volume obrigatório na solicitação #' + numeroLinha;
+            if (!campos.motivo) return 'Motivo obrigatório na solicitação #' + numeroLinha;
+            
+            return null;
+        }
+
+        function preencherEBaixar() {
+            if (!workbook) {
+                showError('Carregue um arquivo primeiro');
+                return;
+            }
+            
+            // Validar todas as linhas
+            for (let i = 1; i <= numLinhas; i++) {
+                const erro = validarCampos(i);
+                if (erro) {
+                    showError(erro);
+                    return;
+                }
+            }
+            
+            try {
+                const ws = workbook.Sheets['PRAZO_GRADE'];
+                
+                // Linha de dados inicia em 7 (índice 6)
+                let linhaExcel = 6;
+                
+                // Preencher cada solicitação
+                for (let i = 1; i <= numLinhas; i++) {
+                    const codigoPfat = document.getElementById(`codigoPfat_${i}`).value.trim();
+                    const clienteRede = document.getElementById(`clienteRede_${i}`).value.trim();
+                    const numeroGrade = document.getElementById(`numeroGrade_${i}`).value.trim();
+                    const prazo = document.getElementById(`prazo_${i}`).value.trim();
+                    const laboratorio = document.getElementById(`laboratorio_${i}`).value.trim();
+                    const canal = document.getElementById(`canal_${i}`).value.trim();
+                    const volume = document.getElementById(`volume_${i}`).value.trim();
+                    const motivo = document.getElementById(`motivo_${i}`).value.trim();
+                    
+                    // Preencher colunas (Excel 1-indexed)
+                    ws[XLSX.utils.encode_cell({c: colunasMap.codigoPfat, r: linhaExcel})] = {v: codigoPfat};
+                    ws[XLSX.utils.encode_cell({c: colunasMap.clienteRede, r: linhaExcel})] = {v: clienteRede};
+                    ws[XLSX.utils.encode_cell({c: colunasMap.numeroGrade, r: linhaExcel})] = {v: numeroGrade || null};
+                    ws[XLSX.utils.encode_cell({c: colunasMap.prazo, r: linhaExcel})] = {v: prazo ? parseInt(prazo) : null};
+                    ws[XLSX.utils.encode_cell({c: colunasMap.laboratorio, r: linhaExcel})] = {v: laboratorio};
+                    ws[XLSX.utils.encode_cell({c: colunasMap.canal, r: linhaExcel})] = {v: canal};
+                    ws[XLSX.utils.encode_cell({c: colunasMap.volume, r: linhaExcel})] = {v: volume ? parseFloat(volume) : null};
+                    ws[XLSX.utils.encode_cell({c: colunasMap.motivo, r: linhaExcel})] = {v: motivo};
+                    
+                    linhaExcel++;
+                }
+                
+                // Download
+                XLSX.writeFile(workbook, 'SOLICITACAO_PRAZO_GRADE_PREENCHIDA.xlsx');
+                showSuccess('Planilha gerada e sendo baixada...');
+                
+            } catch (error) {
+                showError('Erro ao gerar planilha: ' + error.message);
+            }
+        }
+
+        // Inicializar com uma linha
+        document.addEventListener('DOMContentLoaded', function() {
+            renderLinhaForm(1);
+        });
+    </script>
+</body>
+</html>
